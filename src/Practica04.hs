@@ -35,15 +35,26 @@ data ArbolDPLL = Node Estado ArbolDPLL | Branch Estado ArbolDPLL ArbolDPLL | Voi
 --IMPLEMENTACION PARTE 1
 --Ejercicio 1
 conflict :: Estado -> Bool
-conflict = undefined
+conflict (_, clausulas)= algun esVacia clausulas
 
 --Ejercicio 2
 success :: Estado -> Bool
-success = undefined
+success (_, clausulas)= esVacia clausulas
 
 --Ejercicio 3
 unit :: Estado -> Estado
-unit = undefined
+unit (modelo, []) = (modelo, [])
+unit (modelo, (c:cs))
+    | esUnitaria c =
+        let l = head c
+            nombre = obtenerNombre l
+        in if tieneI nombre modelo
+            then unit (modelo, cs)
+            else unit (modelo ++ darV [l], simplificar l cs)
+    | otherwise =
+        let (m, cs') = unit (modelo, cs)
+        in (m, c:cs')
+
 
 --Ejercicio 4
 elim :: Estado -> Estado
@@ -72,3 +83,42 @@ dpll = undefined
 --EXTRA
 dpll2 :: Prop -> Interpretacion
 dpll2 = undefined
+
+-- Funciones auxiliares
+
+algun :: (a -> Bool) -> [a] -> Bool
+algun _ [] = False
+algun p (x:xs) = p x || algun p xs
+
+esVacia :: [a] -> Bool
+esVacia [] = True
+esVacia _ = False
+
+esUnitaria :: Clausula -> Bool
+esUnitaria [x] = True
+esUnitaria xs = False
+
+tieneI :: String -> Interpretacion -> Bool
+tieneI _ [] = False
+tieneI x ((y,b):ys) = if x == y
+    then True
+    else tieneI x ys
+
+obtenerNombre :: Literal -> String
+obtenerNombre (Var x) = x
+obtenerNombre (Not (Var x)) = x
+
+obtenerLiteral :: Clausula -> Literal
+obtenerLiteral [x] = x
+obtenerLiteral _ = Var "" 
+
+darV :: Clausula -> Interpretacion
+darV [Var p] = [(p, True)]
+darV [Not (Var p)] = [(p, False)]
+
+simplificar :: Literal -> [Clausula] -> [Clausula]
+simplificar l = map (filter (/= negar l)) . filter (notElem l)
+
+negar :: Literal -> Literal
+negar (Var x) = Not (Var x)
+negar (Not (Var x)) = Var x
