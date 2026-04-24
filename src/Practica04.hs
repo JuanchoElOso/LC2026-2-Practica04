@@ -45,9 +45,36 @@ success = undefined
 unit :: Estado -> Estado
 unit = undefined
 
---Ejercicio 4
+--Ejercicio 4.
 elim :: Estado -> Estado
-elim = undefined
+elim (interp, clausulas) = (interp, limpiarCiertas interp clausulas)
+
+limpiarCiertas :: Interpretacion -> [Clausula] -> [Clausula]
+limpiarCiertas _ [] = []
+limpiarCiertas interp (c:cs) =
+    if clausulaVerdadera interp c
+    then limpiarCiertas interp cs
+    else c : limpiarCiertas interp cs
+
+clausulaVerdadera :: Interpretacion -> Clausula -> Bool
+clausulaVerdadera _ [] = False
+clausulaVerdadera interp (l:ls) =
+    if esLiteralVerdadero interp l
+    then True
+    else clausulaVerdadera interp ls
+
+esLiteralVerdadero :: Interpretacion -> Literal -> Bool
+esLiteralVerdadero interp (Var px) = tieneVcierto px interp
+esLiteralVerdadero interp (Not (Var px)) = tieneVfalso px interp
+esLiteralVerdadero _ _ = False
+
+tieneVcierto :: String -> Interpretacion -> Bool
+tieneVcierto _ [] = False
+tieneVcierto px ((x, v):is) = if px == x && v == True then True else tieneVcierto px is
+
+tieneVfalso :: String -> Interpretacion -> Bool
+tieneVfalso _ [] = False
+tieneVfalso px ((x, v):is) = if px == x && v == False then True else tieneVfalso px is
 
 --Ejercicio 5
 red :: Estado -> Estado
