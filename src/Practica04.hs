@@ -62,12 +62,31 @@ elim = undefined
 
 --Ejercicio 5
 red :: Estado -> Estado
-red = undefined
+red (interp, clausulas) = (interp, limpiarFalsas interp clausulas)
+
+limpiarFalsas :: Interpretacion -> [Clausula] -> [Clausula]
+limpiarFalsas _ [] = []
+limpiarFalsas interp (c:cs) = 
+    quitarFalsos interp c : limpiarFalsas interp cs
+
+quitarFalsos :: Interpretacion -> Clausula -> Clausula
+quitarFalsos _ [] = []
+quitarFalsos interp (l:ls) =
+    if esLiteralFalso interp l
+    then quitarFalsos interp ls
+    else l : quitarFalsos interp ls
+
+esLiteralFalso :: Interpretacion -> Literal -> Bool
+esLiteralFalso interp (Var px) = tieneVfalso px interp
+esLiteralFalso interp (Not (Var px)) = tieneVcierto px interp
+esLiteralFalso _ _ = False
 
 
 --Ejercicio 6
 sep :: Literal -> Estado -> (Estado, Estado)
-sep = undefined
+sep l (interp, clausulas) = 
+    let nombre = nombreV l
+    in (((nombre, True):interp, clausulas), ((nombre, False):interp, clausulas))
 
 --IMPLEMENTACION PARTE 2
 
