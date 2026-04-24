@@ -35,26 +35,24 @@ data ArbolDPLL = Node Estado ArbolDPLL | Branch Estado ArbolDPLL ArbolDPLL | Voi
 --IMPLEMENTACION PARTE 1
 --Ejercicio 1
 conflict :: Estado -> Bool
-conflict (_, clausulas)= algun esVacia clausulas
+conflict (_, clausulas) = verificarVacia clausulas
 
 --Ejercicio 2
 success :: Estado -> Bool
-success (_, clausulas)= esVacia clausulas
+success (_, clausulas) = arregloVacio clausulas
 
 --Ejercicio 3
 unit :: Estado -> Estado
-unit (modelo, []) = (modelo, [])
-unit (modelo, (c:cs))
-    | esUnitaria c =
-        let l = head c
-            nombre = obtenerNombre l
-        in if tieneI nombre modelo
-            then unit (modelo, cs)
-            else unit (modelo ++ darV [l], simplificar l cs)
-    | otherwise =
-        let (m, cs') = unit (modelo, cs)
-        in (m, c:cs')
-
+unit (interp, clausulas) = 
+    let (unidad, resto) = extraerUnitaria clausulas []
+    in case unidad of
+        [] -> (interp, clausulas)
+        [lit] -> 
+            let nombre = nombreV lit
+            in if tieneV nombre interp
+               then (interp, resto)
+               else (asignarV lit interp, resto)
+        _ -> (interp, clausulas)
 
 --Ejercicio 4
 elim :: Estado -> Estado
@@ -86,39 +84,32 @@ dpll2 = undefined
 
 -- Funciones auxiliares
 
-algun :: (a -> Bool) -> [a] -> Bool
-algun _ [] = False
-algun p (x:xs) = p x || algun p xs
+verificarVacia :: [Clausula] -> Bool
+verificarVacia [] = False
+verificarVacia (c:cs) = if clausulaVacia c then True else verificarVacia cs 
 
-esVacia :: [a] -> Bool
-esVacia [] = True
-esVacia _ = False
+clausulaVacia :: Clausula -> Bool
+clausulaVacia [] = True
+clausulaVacia _ = False
 
-esUnitaria :: Clausula -> Bool
-esUnitaria [x] = True
-esUnitaria xs = False
+arregloVacio :: [Clausula] -> Bool
+arregloVacio [] = True
+arregloVacio _ = False
 
-tieneI :: String -> Interpretacion -> Bool
-tieneI _ [] = False
-tieneI x ((y,b):ys) = if x == y
-    then True
-    else tieneI x ys
+extraerUnitaria :: [Clausula] -> [Clausula] -> (Clausula, [Clausula])
+extraerUnitaria [] previas = ([], previas)
+extraerUnitaria (c:cs) previas =
+    if longitud c == 1
+    then (c, previas ++ cs)
+    else extraerUnitaria cs (previas ++ [c])
 
-obtenerNombre :: Literal -> String
-obtenerNombre (Var x) = x
-obtenerNombre (Not (Var x)) = x
+longitud :: [a] -> Int
+longitud [] = 0
+longitud (_:xs) = 1 + longitud xs
 
-obtenerLiteral :: Clausula -> Literal
-obtenerLiteral [x] = x
-obtenerLiteral _ = Var "" 
+nombreV :: Literal -> String
+nombreV (Var px) = px
+nombreV (Not (Var px)) = px
+nombreV _ = ""
 
-darV :: Clausula -> Interpretacion
-darV [Var p] = [(p, True)]
-darV [Not (Var p)] = [(p, False)]
 
-simplificar :: Literal -> [Clausula] -> [Clausula]
-simplificar l = map (filter (/= negar l)) . filter (notElem l)
-
-negar :: Literal -> Literal
-negar (Var x) = Not (Var x)
-negar (Not (Var x)) = Var x
