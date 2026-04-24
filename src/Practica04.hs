@@ -43,7 +43,13 @@ success = undefined
 
 --Ejercicio 3
 unit :: Estado -> Estado
-unit = undefined
+unit = unit :: Estado -> Estado
+unit (interp, clausulas) = 
+    let (unidad, resto) = extraerUnitaria clausulas [] 
+
+
+    extraerUnitaria :: [Clausula] -> [Clausula] -> (Clausula, [Clausula])
+extraerUnitaria [] previas = ([], previas)
 
 --Ejercicio 4.
 elim :: Estado -> Estado
