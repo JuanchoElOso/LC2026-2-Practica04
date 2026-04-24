@@ -112,4 +112,12 @@ nombreV (Var px) = px
 nombreV (Not (Var px)) = px
 nombreV _ = ""
 
+tieneV :: String -> Interpretacion -> Bool
+tieneV _ [] = False
+tieneV x ((y, _) : ys) = if x == y then True else tieneV x ys
+
+asignarV :: Literal -> Interpretacion -> Interpretacion
+asignarV (Var px) i = (px, True) : i
+asignarV (Not (Var px)) i = (px, False) : i
+asignarV _ i = i
 
