@@ -128,7 +128,7 @@ tieneVfalso :: String -> Interpretacion -> Bool
 tieneVfalso _ [] = False
 tieneVfalso px ((x, v):is) = if px == x && v == False then True else tieneVfalso px is
 
--- Ejercicio 5: Red (y funciones auxiliares)
+-- Ejercicio 5: Red 
 red :: Estado -> Estado
 red (interp, clausulas) = (interp, limpiarFalsas interp clausulas)
 
@@ -146,7 +146,7 @@ quitarFalsos interp (l:ls) =
 
 esLiteralFalso :: Interpretacion -> Literal -> Bool
 esLiteralFalso interp (Var px) = tieneVfalso px interp
-esLiteralFalso interp (Not (Var px)) = tieneVcierto px interp
+esLiteralFalso interp (Not (Var px)) = tieneVfalso px interp
 esLiteralFalso _ _ = False
 
 -- Ejercicio 6: Sep
